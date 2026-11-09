@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+
+<title>Study Planner</title>
+
+<!-- Favicon -->
+<link
+  rel="icon"
+  type="image/svg+xml"
+  href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%234f46e5'/%3E%3Cpath d='M18 14h28a4 4 0 0 1 4 4v28a4 4 0 0 1-4 4H18a4 4 0 0 1-4-4V18a4 4 0 0 1 4-4Z' fill='white'/%3E%3Cpath d='M21 24h22M21 32h22M21 40h14' stroke='%234f46e5' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+
+<!-- Optional fallback favicon -->
+<link
+  rel="alternate icon"
+  href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%234f46e5'/%3E%3Cpath d='M18 14h28a4 4 0 0 1 4 4v28a4 4 0 0 1-4 4H18a4 4 0 0 1-4-4V18a4 4 0 0 1 4-4Z' fill='white'/%3E%3Cpath d='M21 24h22M21 32h22M21 40h14' stroke='%234f46e5' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+
+<!-- Baseline hardening for this wrapper page itself -->
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'self'; frame-src https://script.google.com; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'none';">
+
+<style>
+  html,body{
+    margin:0;
+    padding:0;
+    height:100%;
+    background:#f4f3ee;
+    overflow:hidden;
+  }
+
+  /* The iframe is pinned to the VISIBLE area of the phone.
+     100vh = the "large" viewport (taller than what you can see while the
+     browser toolbar is showing), which pushed the bottom of the app behind
+     the toolbar. 100dvh = the real visible height. */
+  #gwFrame{
+    position:fixed;
+    top:0; left:0; right:0;
+    width:100%;
+    height:100vh;      /* fallback for old browsers */
+    height:100dvh;     /* real visible height on modern mobile browsers */
+    border:0;
+    display:block;
+  }
+</style>
+</head>
+
+<body>
+
+<iframe id="gwFrame"
+  src="https://script.google.com/macros/s/AKfycbwqvMk3wU8yZ-puOze6-7g7svr5KoI-NODu5p6LicWlQ_ZQjnjf1XgIFRa_KzHSVf7M/exec"
+  referrerpolicy="origin"></iframe>
+
+<script>
+  var BASE_URL = "https://script.google.com/macros/s/AKfycbwqvMk3wU8yZ-puOze6-7g7svr5KoI-NODu5p6LicWlQ_ZQjnjf1XgIFRa_KzHSVf7M/exec";
+
+  var EXPECTED_APP_ORIGIN_SUFFIX = ".googleusercontent.com";
+  var iframe = document.getElementById("gwFrame");
+
+  /* Fallback for browsers without 100dvh: window.innerHeight is always the
+     height you can actually see. Keeps the iframe in step when the browser
+     toolbar shows/hides or the phone rotates. */
+  (function () {
+    var supportsDvh = window.CSS && CSS.supports && CSS.supports("height", "100dvh");
+    if (supportsDvh) return;
+    function fit() { iframe.style.height = window.innerHeight + "px"; }
+    window.addEventListener("resize", fit);
+    window.addEventListener("orientationchange", fit);
+    fit();
+  })();
+
+  function isTrustedAppOrigin(origin) {
+    try {
+      var u = new URL(origin);
+      return u.protocol === "https:" &&
+             u.hostname.endsWith(EXPECTED_APP_ORIGIN_SUFFIX);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  window.addEventListener("message", function (ev) {
+    if (!isTrustedAppOrigin(ev.origin)) return;
+
+    var d = ev.data;
+    if (!d || d.source !== "study-planner-nav") return;
+
+    if (d.type === "frame-guard-hello" && d.nonce) {
+      ev.source.postMessage(
+        {
+          source: "study-planner-nav",
+          type: "frame-guard-ack",
+          nonce: d.nonce
+        },
+        ev.origin
+      );
+      return;
+    }
+
+    if (d.type === "navigate" && d.url) {
+      if (typeof d.url !== "string" ||
+          d.url.indexOf(BASE_URL) !== 0) return;
+
+      iframe.src = d.url;
+    }
+  });
+</script>
+
+</body>
+</html>
